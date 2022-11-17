@@ -13,9 +13,7 @@ app.use(express.json());
 
 app.use('/insert', insertRouter);
 
-app.use('/', (req,res) => {
-
-    console.log("Body", req.body);
+app.get('/', (req,res) => {
 
     return res.status(200).json({"msg": "Hello from Products"});
 });
