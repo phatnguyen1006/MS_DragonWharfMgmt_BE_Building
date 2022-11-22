@@ -6,9 +6,9 @@ async function saveNode(node) {
         const nodeUnit = new Node(node);
         const savedNode = await nodeUnit.save();
 
-        if (savedNode) console.log("Logs: successful!");
+        if (savedNode) console.log("Logs: save NODE successful!");
 
-        else console.log("Logs: failed!");
+        else console.log("Logs: save NODE failed!");
 
         return savedNode;
     } catch (error) {

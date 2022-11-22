@@ -6,10 +6,11 @@ const faceSchema = new mongoose.Schema(
             type: String,
         },
         nodes: {
-            type: [String],
+            type: [mongoose.Types.ObjectId],
         },
         description: {
             type: String,
+            default: ""
         },
     },
     { timestamps: true }
