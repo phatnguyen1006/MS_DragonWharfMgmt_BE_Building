@@ -16,17 +16,18 @@ async function handleBlock(req, res, next) {
     }
 
     let listNodeId = []
-    let listNodeCoordinates = geoJson.features[0].geometry.coordinates[0][0]
+    let listFaceCoordinates = geoJson.features[0].geometry.coordinates[0]
 
-    for (let nodeCoordinates of listNodeCoordinates) {
-        console.log('nodeCoordinates  ', nodeCoordinates)
-        const node = {
-            x: nodeCoordinates[0],
-            y: nodeCoordinates[1],
-            z: nodeCoordinates[2]
+    for (let faceCoordinates of listFaceCoordinates) {
+        for (let nodeCoordinates of faceCoordinates) {
+            const node = {
+                x: nodeCoordinates[0],
+                y: nodeCoordinates[1],
+                z: nodeCoordinates[2]
+            }
+            const savedNode = await NodeService.saveNode(node)
+            listNodeId.push(savedNode._id)
         }
-        const savedNode = await NodeService.saveNode(node)
-        listNodeId.push(savedNode._id)
     }
 
     let face = {
