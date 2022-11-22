@@ -4,6 +4,7 @@ const buildingSchema = new mongoose.Schema(
     {
         building_name: {
             type: String,
+            unique: true 
         },
         address: {
             type: String,
@@ -12,10 +13,12 @@ const buildingSchema = new mongoose.Schema(
             type: String,
         },
         blocks: {
-            type: [String],
+            type: [mongoose.Types.ObjectId],
+            default: []
         },
         blocks_pl: {
             type: [String],
+            default: []
         },
     },
     { timestamps: true }

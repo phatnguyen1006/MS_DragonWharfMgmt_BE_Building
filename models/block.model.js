@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const blockSchema = new mongoose.Schema(
     {
         face_id: {
-            type: String,
+            type: mongoose.Types.ObjectId,
         },
         height: {
             type: mongoose.Schema.Types.Decimal128,
