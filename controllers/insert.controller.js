@@ -7,7 +7,7 @@ const BuildingModel = require("../models/building.model");
 
 async function handleBlock(req, res, next) {
     let geoJson = req.body.geoJson;
-    let rerender = req.body.rerender;
+    let renderer = req.body.renderer;
 
     //Check Building đã tồn tại hay chưa
     const building = await BuildingModel.findOne({building_name: req.body.building_name})
@@ -36,9 +36,9 @@ async function handleBlock(req, res, next) {
 
     let block = {
         face_id: savedFace._id,
-        height: rerender?.symbol?.symbolLayers[0]?.size,
-        color: rerender?.symbol?.symbolLayers[0]?.material?.color,
-        blockName: geoJson?.features?.properties?.Name
+        height: renderer?.symbol?.symbolLayers[0]?.size,
+        color: renderer?.symbol?.symbolLayers[0]?.material?.color,
+        blockName: geoJson?.features[0]?.properties?.Name
     }
     const savedBlock = await BlockService.saveBlock(block)
 
