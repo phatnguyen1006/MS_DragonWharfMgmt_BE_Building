@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const block = require('../models/block.model')
 
 const buildingSchema = new mongoose.Schema(
     {
@@ -12,10 +13,12 @@ const buildingSchema = new mongoose.Schema(
         description: {
             type: String,
         },
-        blocks: {
-            type: [mongoose.Types.ObjectId],
-            default: []
-        },
+        blocks: [
+            {
+                type: mongoose.Types.ObjectId,
+                ref: 'Block'
+            }
+        ],
         blocks_pl: {
             type: [String],
             default: []

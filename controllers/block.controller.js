@@ -164,6 +164,50 @@ async function updateBlock(req, res, next) {
     return res.status(200).json({ message: "UPDATE BLOCK THÀNH CÔNG!!!", data: updatedBuilding });
 }
 
+async function getBlock(req, res, next) {
+    let building_name = req.body.building_name;
+    let block_name = req.body.block_name;
+
+    //Check Building đã tồn tại hay chưa
+    const building = await BuildingModel.findOne({building_name: building_name})
+    if (!building) {
+        return res.status(200).json({ message: 'BUILDING KHÔNG TỒN TẠI!!! VUI LÒNG THỬ LẠI!!!' });
+    }
+
+    let query = {
+        _id: building.blocks
+    }
+
+    if (block_name){
+        query.blockName = block_name
+    }
+
+    let listBlock = await BlockModel.find(query).select('-_id -createdAt -updatedAt -__v').populate({
+        path : 'faces',
+        select: 'nodes',
+        populate : {
+          path : 'nodes',
+          select: 'x y z',
+        }
+    }).lean()
+
+    for (let block of listBlock) {
+        let coordinates = []
+        for (let face of block.faces) {
+            let listNodeCoordinate = []
+            for (let node of face.nodes) {
+                let coordinate = [node.x, node.y, node.z]
+                listNodeCoordinate.push(coordinate)
+            }
+            coordinates.push([listNodeCoordinate])
+        }
+        block.coordinates = coordinates
+        delete block.faces
+    }
+
+    return res.status(200).json({ message: "GET BLOCK THÀNH CÔNG!!!", data: listBlock });
+}
+
 // async function migrateBlockData(req, res, next) {
 //     let listBlock = await BlockModel.find().lean()
     
@@ -190,5 +234,5 @@ module.exports = {
     handleBlock,
     updateBlock,
     deleteBlock,
-    migrateBlockData
+    getBlock
 }

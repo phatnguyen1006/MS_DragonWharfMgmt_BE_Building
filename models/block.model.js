@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const face = require('../models/face.model')
 
 const blockSchema = new mongoose.Schema(
     {
@@ -14,9 +15,12 @@ const blockSchema = new mongoose.Schema(
         blockName: {
             type: String,
         },
-        faces: {
-            type: [mongoose.Types.ObjectId],
-        },
+        faces: [
+            {
+                type: mongoose.Types.ObjectId,
+                ref: 'Face'
+            }
+        ],
         description: {
             type: String,
         },
