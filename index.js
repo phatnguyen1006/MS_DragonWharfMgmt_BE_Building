@@ -18,7 +18,7 @@ app.use('/insert', insertRouter);
 app.use('/building', buildingRouter);
 
 app.get('/', (req,res) => {
-    return res.status(200).json({"msg": "Hello from Products"});
+    return res.status(200).json({"msg": "Hello from Building"});
 });
 
 
