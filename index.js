@@ -7,11 +7,13 @@ const PORT = process.env.PORT || 8002;
 
 mongoDB.connectDB();
 
-const insertRouter = require("./routes/insert.route");
+const blockRouter = require("./routes/block.route");
 const buildingRouter = require("./routes/building.route");
+const insertRouter = require('./routes/insert.route')
 
 app.use(express.json());
 
+app.use('/block', blockRouter);
 app.use('/insert', insertRouter);
 app.use('/building', buildingRouter);
 

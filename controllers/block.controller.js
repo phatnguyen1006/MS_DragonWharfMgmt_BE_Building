@@ -92,6 +92,11 @@ async function deleteBlock(req, res, next) {
         const deletedFace = await FaceModel.findByIdAndDelete({ _id: faceId })
         const deletedNode = await NodeModel.deleteMany({ _id: deletedFace.nodes })
     }
+    const updatedBuilding = await BuildingModel.findOneAndUpdate(
+        { building_name: "Dragon Wharf" },
+        { $pull: {blocks: existBlock._id.toString()}},
+        { new: true }
+    )
     const deletedBlock = await BlockModel.findByIdAndDelete({ _id: existBlock._id })
 
     return res.status(200).json({ message: "XÓA BLOCK THÀNH CÔNG!!!" });
@@ -165,11 +170,11 @@ async function updateBlock(req, res, next) {
 }
 
 async function getBlock(req, res, next) {
-    let building_name = req.body.building_name;
+    // let building_name = req.body.building_name;
     let block_name = req.body.block_name;
 
     //Check Building đã tồn tại hay chưa
-    const building = await BuildingModel.findOne({building_name: building_name})
+    const building = await BuildingModel.findOne({building_name: "Dragon Wharf"})
     if (!building) {
         return res.status(200).json({ message: 'BUILDING KHÔNG TỒN TẠI!!! VUI LÒNG THỬ LẠI!!!' });
     }
@@ -208,31 +213,35 @@ async function getBlock(req, res, next) {
     return res.status(200).json({ message: "GET BLOCK THÀNH CÔNG!!!", data: listBlock });
 }
 
-// async function migrateBlockData(req, res, next) {
-//     let listBlock = await BlockModel.find().lean()
+async function migrateBlockData(req, res, next) {
+    let listBlock = await BlockModel.find().lean()
+    let listUpdateBlockId = []
+    let listNewBlock = []
+    for (let block of listBlock){
+        if (block.face_id){
+            let newBlock = { ...block } 
+
+            newBlock.faces = [ block.face_id ]
     
-//     let listNewBlock = []
-//     for (let block of listBlock){
-//         let newBlock = { ...block } 
+            // console.log("block face_id   ", newBlock.face_id)
+            delete newBlock.face_id
+            listNewBlock.push(newBlock)
+            listUpdateBlockId.push(newBlock._id)
+        }
+        // block.save()
+    }
+    console.log("listNewBlock  ", listNewBlock)
 
-//         newBlock.faces = [ block.face_id ]
+    await BlockModel.deleteMany({_id: {$in: listUpdateBlockId}})
+    await BlockModel.insertMany(listNewBlock)
 
-//         // console.log("block face_id   ", newBlock.face_id)
-//         delete newBlock.face_id
-//         listNewBlock.push(newBlock)
-//         // block.save()
-//     }
-//     console.log("listNewBlock  ", listNewBlock)
-
-//     await BlockModel.deleteMany()
-//     await BlockModel.insertMany(listNewBlock)
-
-//     return res.status(200).json({ message: "DONE!!!" });
-// }
+    return res.status(200).json({ message: "DONE!!!" });
+}
 
 module.exports = {
     handleBlock,
     updateBlock,
     deleteBlock,
-    getBlock
+    getBlock,
+    migrateBlockData
 }
