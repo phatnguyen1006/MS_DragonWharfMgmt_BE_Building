@@ -165,11 +165,11 @@ async function updateBlock(req, res, next) {
 }
 
 async function getBlock(req, res, next) {
-    let building_name = req.body.building_name;
+    // let building_name = req.body.building_name;
     let block_name = req.body.block_name;
 
     //Check Building đã tồn tại hay chưa
-    const building = await BuildingModel.findOne({building_name: building_name})
+    const building = await BuildingModel.findOne({building_name: "Dragon Wharf"})
     if (!building) {
         return res.status(200).json({ message: 'BUILDING KHÔNG TỒN TẠI!!! VUI LÒNG THỬ LẠI!!!' });
     }
