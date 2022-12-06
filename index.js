@@ -1,5 +1,6 @@
 const express = require('express');
 const app = express(); 
+const cors = require("cors");
 const mongoDB = require("./configs/mongo.db");
 
 require("dotenv").config();
@@ -9,9 +10,11 @@ mongoDB.connectDB();
 
 const blockRouter = require("./routes/block.route");
 const buildingRouter = require("./routes/building.route");
-const insertRouter = require('./routes/insert.route')
+const insertRouter = require('./routes/insert.route');
+
 
 app.use(express.json());
+app.use(cors());
 
 app.use('/block', blockRouter);
 app.use('/insert', insertRouter);
