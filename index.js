@@ -27,4 +27,4 @@ app.get('/', (req,res) => {
 
 app.listen(PORT, () => {
     console.log(`Products is Listening to Port ${PORT}`);
-});
+}).setTimeout(60*1000);
