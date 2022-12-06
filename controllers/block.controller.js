@@ -73,7 +73,7 @@ async function handleBlock(req, res, next) {
 
         return res.status(200).json({ message: "THÊM BLOCK THÀNH CÔNG!!!", data: updatedBuilding });
     } catch (err) {
-        return res.status(506).json({ message: "THÊM BLOCK KHÔNG THÀNH CÔNG!!!", err });
+        return res.status(506).json({ message: "THÊM BLOCK KHÔNG THÀNH CÔNG!!!", err: err.toString() });
     }
 }
 
