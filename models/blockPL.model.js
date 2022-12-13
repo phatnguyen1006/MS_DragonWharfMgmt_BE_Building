@@ -2,18 +2,18 @@ const mongoose = require('mongoose');
 
 const blockPLSchema = new mongoose.Schema(
     {
-        face_id: {
-            type: String,
-        },
         color: {
             type: String,
         },
-        blockName: {
+        blockPlName: {
             type: String,
         },
-        polygons: {
-            type: [String],
-        },
+        polygons: [
+            {
+                type: mongoose.Types.ObjectId,
+                ref: 'Polygon'
+            }
+        ],
         description: {
             type: String,
         },

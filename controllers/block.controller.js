@@ -7,6 +7,9 @@ const BlockModel = require("../models/block.model");
 const FaceModel = require("../models/face.model");
 const NodeModel = require("../models/node.model");
 
+const BlockPlModel = require("../models/blockPL.model");
+const PolygonModel = require("../models/polygon.model");
+
 async function handleBlock(req, res, next) {
     try {
         let geoJson = req.body.geoJson;
@@ -183,25 +186,23 @@ async function updateBlock(req, res, next) {
 
 async function getBlock(req, res, next) {
     try {
-        // let building_name = req.body.building_name;
-        let block_name = req.body.block_name;
-
         //Check Building đã tồn tại hay chưa
         const building = await BuildingModel.findOne({building_name: "Dragon Wharf"})
         if (!building) {
             return res.status(200).json({ message: 'BUILDING KHÔNG TỒN TẠI!!! VUI LÒNG THỬ LẠI!!!' });
         }
 
-        let query = {
-            _id: building.blocks
-        }
-
-        if (block_name){
-            query.blockName = block_name
-        }
-
-        let listBlock = await BlockModel.find(query).select('-_id -createdAt -updatedAt -__v').populate({
+        let listBlock = await BlockModel.find({ _id: building.blocks }).select('-_id -createdAt -updatedAt -__v').populate({
             path : 'faces',
+            select: 'nodes',
+            populate : {
+            path : 'nodes',
+            select: 'x y z',
+            }
+        }).lean()
+
+        let listBlockPl = await BlockPlModel.find({ _id: building.blocks_pl }).select('-_id -createdAt -updatedAt -__v').populate({
+            path : 'polygons',
             select: 'nodes',
             populate : {
             path : 'nodes',
@@ -223,8 +224,27 @@ async function getBlock(req, res, next) {
             delete block.faces
         }
 
-        return res.status(200).json({ message: "GET BLOCK THÀNH CÔNG!!!", data: listBlock });
+        for (let blockPl of listBlockPl) {
+            let coordinates = []
+            for (let polygon of blockPl.polygons) {
+                let listNodeCoordinate = []
+                for (let node of polygon.nodes) {
+                    let coordinate = [node.x, node.y, node.z]
+                    listNodeCoordinate.push(coordinate)
+                }
+                coordinates.push([listNodeCoordinate])
+            }
+            blockPl.coordinates = coordinates
+            blockPl.blockName = blockPl.blockPlName
+            delete blockPl.polygons
+            delete blockPl.blockPlName
+        }
+
+        const finalListBlock = listBlock.concat(listBlockPl)
+
+        return res.status(200).json({ message: "GET BLOCK THÀNH CÔNG!!!", length: finalListBlock.length, data: finalListBlock });
     } catch (err) {
+        console.log(err)
         return res.status(506).json({ message: "GET BLOCK KHÔNG THÀNH CÔNG!!!", err });
     }
 }
@@ -254,10 +274,118 @@ async function migrateBlockData(req, res, next) {
     return res.status(200).json({ message: "DONE!!!" });
 }
 
+async function updateBlockColor(req, res, next) {
+    try {
+        let listBlock = await BlockModel.find(
+                {
+                    $and: [
+                        {blockName: {$regex: "Vom "}},
+                        // {blockName: {$regex: "Extra"}},
+                    ]
+                }
+            ).lean()
+
+        let listUpdateBlockId = []
+        let listNewBlock = []
+        for (let block of listBlock){
+            let newBlock = { ...block } 
+
+            newBlock.color = "#C2C59C"
+            newBlock.height = 0.01
+
+            listNewBlock.push(newBlock)
+            listUpdateBlockId.push(newBlock._id)
+            // block.save()
+        }
+        console.log("listNewBlock  ", listNewBlock)
+
+        await BlockModel.deleteMany({_id: {$in: listUpdateBlockId}})
+        await BlockModel.insertMany(listNewBlock)
+
+        return res.status(200).json({ message: "DONE!!!", data: listBlock});
+
+    } catch (err) {
+        return res.status(506).json({ message: "GET BLOCK KHÔNG THÀNH CÔNG!!!", err });
+    }
+}
+
+async function updateBlockPl(req, res, next) {
+    try {
+        //==================tach blocks va blockPl=========================
+
+        // let listBlock = await BlockModel.find(
+        //         {
+        //             "faces.1": { "$exists": true }
+        //         }
+        //     ).lean()
+
+        // let listFaceId = []
+        // let listBlockId = []
+
+        // let listBlockPl = []
+        // for (let block of listBlock){
+        //     listFaceId = listFaceId.concat(block.faces)
+        //     listBlockId.push(block._id)
+        //     let blockPL = {
+        //         color: block.color,
+        //         blockPlName: block.blockName,
+        //         polygons: block.faces,
+        //         description: '',
+        //     }
+        //     listBlockPl.push(blockPL)
+        // }
+
+        // let listFace = await FaceModel.find(
+        //     {
+        //         _id: listFaceId
+        //     }
+        // ).lean()
+
+        // await BlockPlModel.insertMany(listBlockPl)
+        // await PolygonModel.insertMany(listFace)
+
+        // await BlockModel.deleteMany({ _id: listBlockId })
+        // await FaceModel.deleteMany({ _id: listFaceId })
+
+        //==================tach blocks va blockPl=========================
+
+        //==================Caajp nhaajt building=========================
+
+        // let listBlockPl = await BlockPlModel.find().lean()
+
+        // let listBlockPlId = []
+        // for (let blockPl of listBlockPl){
+        //     listBlockPlId.push(blockPl._id)
+        // }
+
+        // await BuildingModel.updateOne(
+        //     {
+        //         building_name: "Dragon Wharf"
+        //     },
+        //     {
+        //         $pullAll: { blocks: listBlockPlId },
+        //         $push: { blocks_pl: listBlockPlId }
+        //     }
+        // )
+
+        //==================Caajp nhaajt building=========================
+
+        const building = await BuildingModel.findOne({ building_name: "Dragon Wharf" })
+
+        return res.status(200).json({ message: "DONE!!!", length: building.blocks_pl.length, data: building });
+
+    } catch (err) {
+        console.log(err.toString())
+        return res.status(506).json({ message: "GET BLOCK KHÔNG THÀNH CÔNG!!!", err });
+    }
+}
+
 module.exports = {
     handleBlock,
     updateBlock,
     deleteBlock,
     getBlock,
-    migrateBlockData
+    migrateBlockData,
+    updateBlockColor,
+    updateBlockPl
 }
